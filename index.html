@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Journeys of Knowledge</title>
+
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+    body {
+        font-family: 'EB Garamond', serif;
+        background: #f5f0e6;
+        background-image:
+            radial-gradient(circle at 20% 20%, rgba(0,0,0,0.05) 0%, transparent 60%),
+            radial-gradient(circle at 80% 80%, rgba(0,0,0,0.05) 0%, transparent 60%),
+            radial-gradient(circle at 50% 50%, rgba(0,0,0,0.03) 0%, transparent 70%);
+        background-attachment: fixed;
+        padding: 40px;
+        max-width: 900px;
+        margin: auto;
+        color: #2a1e12;
+        line-height: 1.6;
+    }
+
+    h1, h2 {
+        text-align: center;
+    }
+
+    .nav {
+        text-align:center;
+        margin-bottom:20px;
+    }
+
+    .nav a {
+        margin: 0 20px;
+        font-size: 20px;
+        color: #3b2a16;
+        text-decoration: none;
+    }
+
+    .nav a:hover {
+        text-decoration: underline;
+    }
+
+    .screen {
+        display: none;
+    }
+
+    button {
+        padding: 12px 20px;
+        margin: 10px 0;
+        border: none;
+        background: #4a67ff;
+        color: white;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 16px;
+        width: 100%;
+    }
+
+    button:hover {
+        background: #354dcc;
+    }
+
+    .choice-btn {
+        display: block;
+        width: 100%;
+        margin-bottom: 12px;
+        text-align: left;
+    }
+</style>
+</head>
+<body>
+
+<div class="nav">
+    <a href="index.html">Play Game</a>
+    <a href="creator.html">Creator's Statement</a>
+</div>
+
+
+<h1>Journeys of Knowledge</h1>
+<p style="text-align:center;">A Renaissance knowledge adventure based on real historical interactions</p>
+
+<!-- TIME PERIOD SELECTION -->
+<div id="screen-time" class="screen" style="display:block;">
+    <h2>Choose a Time Period</h2>
+    <button onclick="pickTime('artisanWorld')">Artisan World</button>
+    <button onclick="pickTime('humanistWorld')">Humanist World</button>
+    <button onclick="pickTime('engineeringWorld')">Military Engineering</button>
+    <button onclick="pickTime('patronWorld')">Courtly Patronage</button>
+</div>
+
+<!-- CHARACTER SELECTION -->
+<div id="screen-character" class="screen">
+    <h2>Choose Your Character</h2>
+    <div id="character-options"></div>
+</div>
+
+<!-- DECISION 1 -->
+<div id="screen-d1" class="screen">
+    <h2>Decision 1</h2>
+    <p id="d1-text"></p>
+    <button id="d1a" class="choice-btn" onclick="decision1('a')"></button>
+    <button id="d1b" class="choice-btn" onclick="decision1('b')"></button>
+</div>
+
+<!-- DECISION 2 -->
+<div id="screen-d2" class="screen">
+    <h2>Decision 2</h2>
+    <p id="d2-text"></p>
+    <button id="d2a" class="choice-btn" onclick="decision2('a')"></button>
+    <button id="d2b" class="choice-btn" onclick="decision2('b')"></button>
+</div>
+
+<!-- DECISION 3 -->
+<div id="screen-d3" class="screen">
+    <h2>Decision 3</h2>
+    <p id="d3-text"></p>
+    <button id="d3a" class="choice-btn" onclick="decision3('a')"></button>
+    <button id="d3b" class="choice-btn" onclick="decision3('b')"></button>
+</div>
+
+<!-- ENDING -->
+<div id="screen-end" class="screen">
+    <h2>Your Journey's Lesson</h2>
+    <p id="ending-text"></p>
+    <button onclick="restart()">Play Again</button>
+</div>
+
+<script>
+let currentPeriod = "";
+let currentCharacter = "";
+let path1 = "";
+let path2 = "";
+
+function show(screen) {
+    document.querySelectorAll(".screen").forEach(s => s.style.display = "none");
+    document.getElementById(screen).style.display = "block";
+}
+
+function pickTime(period) {
+    currentPeriod = period;
+    let html = "";
+
+    for (let key in data[period]) {
+        html += `<button onclick="pickCharacter('${key}')">${data[period][key].characterName}</button>`;
+    }
+
+    document.getElementById("character-options").innerHTML = html;
+    show("screen-character");
+}
+
+function pickCharacter(key) {
+    currentCharacter = key;
+    const d1 = data[currentPeriod][currentCharacter].d1;
+
+    document.getElementById("d1-text").innerText = d1.text;
+    document.getElementById("d1a").innerText = d1.choiceA;
+    document.getElementById("d1b").innerText = d1.choiceB;
+
+    show("screen-d1");
+}
+
+function decision1(choice) {
+    path1 = choice;
+    const branches = data[currentPeriod][currentCharacter].d2;
+
+    const next = (choice === "a") ? branches.fromA : branches.fromB;
+
+    document.getElementById("d2-text").innerText = next.text;
+    document.getElementById("d2a").innerText = next.choiceA;
+    document.getElementById("d2b").innerText = next.choiceB;
+
+    show("screen-d2");
+}
+
+function decision2(choice) {
+    path2 = choice;
+    const branches = data[currentPeriod][currentCharacter].d3;
+
+    const next = (path1 === "a")
+        ? branches.fromA[choice]
+        : branches.fromB[choice];
+
+    document.getElementById("d3-text").innerText = next.text;
+    document.getElementById("d3a").innerText = next.choiceA;
+    document.getElementById("d3b").innerText = next.choiceB;
+
+    show("screen-d3");
+}
+
+function decision3(choice) {
+    const end = data[currentPeriod][currentCharacter].ending;
+    document.getElementById("ending-text").innerText = end;
+    show("screen-end");
+}
+
+function restart() {
+    show("screen-time");
+}
+
+
+const data = {
+
+    /*******************************
+     *       ARTISAN WORLD
+     *******************************/
+    artisanWorld: {
+
+        /* ============================
+           ARTISAN CHARACTER
+           ============================ */
+        artisan: {
+            characterName: "Artisan Metallurgist",
+
+            d1: {
+                text: "A humanist researcher asks to watch your secret alloy process.",
+                choiceA: "Allow limited observation",
+                choiceB: "Refuse completely"
+            },
+
+            d2: {
+                fromA: {
+                    text: "The scholar begins sketching your furnace setup.",
+                    choiceA: "Ask them to stop sketching",
+                    choiceB: "Allow sketching but hide key steps"
+                },
+                fromB: {
+                    text: "The overseer confronts you for slowing progress.",
+                    choiceA: "Defend your secrecy",
+                    choiceB: "Give a partial demonstration"
+                }
+            },
+
+            d3: {
+                fromA: {
+                    a: {
+                        text: "The scholar puts the sketch away and promises discretion.",
+                        choiceA: "Trust their promise",
+                        choiceB: "Warn them of consequences for leaking secrets"
+                    },
+                    b: {
+                        text: "The scholar senses you're hiding steps and grows suspicious.",
+                        choiceA: "Clarify what they MAY write",
+                        choiceB: "End the session early"
+                    }
+                },
+                fromB: {
+                    a: {
+                        text: "The overseer grumbles but backs down.",
+                        choiceA: "Stand firm on secrecy",
+                        choiceB: "Offer a supervised viewing"
+                    },
+                    b: {
+                        text: "Your demonstration satisfies the overseer but worries your apprentice.",
+                        choiceA: "Reassure the apprentice",
+                        choiceB: "Tell them secrecy must adapt"
+                    }
+                }
+            },
+
+            ending:
+`Your journey as an artisan shows that technical knowledge moved through fragile relationships. 
+Every choice you made changed how much scholars, overseers, and apprentices trusted you. 
+Allowing access opened doors but risked losing what made your craft valuable. 
+Guarding secrets protected your identity but invited pressure from those above you. 
+Your decisions reveal how Renaissance artisans shaped the flow of knowledge through constant negotiation.`
+        },
+
+        /* ============================
+           HUMANIST RESEARCHER
+           ============================ */
+        scholar: {
+            characterName: "Humanist Researcher",
+
+            d1: {
+                text: "The artisan seems reluctant to share their process.",
+                choiceA: "Negotiate respectfully",
+                choiceB: "Offer payment for access"
+            },
+
+            d2: {
+                fromA: {
+                    text: "A fellow scholar says you're being too gentle.",
+                    choiceA: "Maintain respectful negotiation",
+                    choiceB: "Press the artisan harder"
+                },
+                fromB: {
+                    text: "The overseer overhears your payment and accuses you of disturbing order.",
+                    choiceA: "Defend your intentions",
+                    choiceB: "Apologize and step back"
+                }
+            },
+
+            d3: {
+                fromA: {
+                    a: {
+                        text: "The artisan appreciates your patience and reveals a partial step.",
+                        choiceA: "Study it carefully",
+                        choiceB: "Try to learn more"
+                    },
+                    b: {
+                        text: "The artisan becomes defensive.",
+                        choiceA: "Back off to rebuild trust",
+                        choiceB: "Push your request further"
+                    }
+                },
+                fromB: {
+                    a: {
+                        text: "The overseer softens slightly.",
+                        choiceA: "Request official permission",
+                        choiceB: "Leave the workshop"
+                    },
+                    b: {
+                        text: "The artisan quietly thanks you for backing down.",
+                        choiceA: "Try negotiating again",
+                        choiceB: "End your inquiry"
+                    }
+                }
+            },
+
+            ending:
+`Your experience mirrors the challenges humanist scholars faced in learning from skilled workers.
+Textual knowledge alone rarely matched the complexity of real craft practices.
+Trust, tone, and patience often shaped what you could learn more than status or theory.
+Your journey reveals how scholarship depended on building fragile relationships with people whose worlds were very different from your own.`
+        },
+
+        /* ============================
+           OVERSEER
+           ============================ */
+        overseer: {
+            characterName: "Mine Overseer",
+
+            d1: {
+                text: "An artisan refuses to reveal a technique that could increase output.",
+                choiceA: "Respect their boundaries",
+                choiceB: "Apply pressure"
+            },
+
+            d2: {
+                fromA: {
+                    text: "A scholar arrives asking to observe.",
+                    choiceA: "Allow limited access",
+                    choiceB: "Deny the request"
+                },
+                fromB: {
+                    text: "The artisan slows production intentionally.",
+                    choiceA: "Try rebuilding trust",
+                    choiceB: "Threaten consequences"
+                }
+            },
+
+            d3: {
+                fromA: {
+                    a: {
+                        text: "The scholar is grateful but asks for even more access.",
+                        choiceA: "Permit closer observation",
+                        choiceB: "Hold firm"
+                    },
+                    b: {
+                        text: "The artisan appreciates your support.",
+                        choiceA: "Reward their cooperation",
+                        choiceB: "Expect increased output"
+                    }
+                },
+                fromB: {
+                    a: {
+                        text: "The artisan softens slightly.",
+                        choiceA: "Open a dialogue",
+                        choiceB: "Push productivity goals"
+                    },
+                    b: {
+                        text: "The workshop grows tense.",
+                        choiceA: "Mediation meeting",
+                        choiceB: "Punish the artisan"
+                    }
+                }
+            },
+
+            ending:
+`Your role as overseer demonstrates how power shaped the flow of technical knowledge.
+Managing a workshop required balancing the demands of scholars, patrons, and artisans.
+Too much pressure damaged production, but too much leniency slowed innovation.
+Your experience shows how Renaissance technical culture depended not only on skill or theory but also on workplace politics and authority.`
+        }
+    },
+
+    /*******************************
+     *       HUMANIST WORLD
+     *******************************/
+    humanistWorld: {
+
+        /* SCHOLAR */
+        scholar: {
+            characterName: "Translator-Scholar",
+
+            d1: {
+                text: "You must verify a technique that appears in an ancient text.",
+                choiceA: "Visit an artisan workshop",
+                choiceB: "Trust the classical text instead"
+            },
+
+            d2: {
+                fromA: {
+                    text: "The artisan demonstrates a method that contradicts the ancient source.",
+                    choiceA: "Trust the artisan's experience",
+                    choiceB: "Question their demonstration"
+                },
+                fromB: {
+                    text: "The printer complains that your diagram is unclear.",
+                    choiceA: "Collaborate to improve the diagram",
+                    choiceB: "Tell them to follow your notes exactly"
+                }
+            },
+
+            d3: {
+                fromA: {
+                    a: {
+                        text: "The artisan appreciates your open-mindedness.",
+                        choiceA: "Ask deeper questions",
+                        choiceB: "Record only what you saw"
+                    },
+                    b: {
+                        text: "The artisan grows irritated at being doubted.",
+                        choiceA: "Smooth over the tension",
+                        choiceB: "Double down on your skepticism"
+                    }
+                },
+                fromB: {
+                    a: {
+                        text: "The printer’s revised diagram is more accurate.",
+                        choiceA: "Credit the printer",
+                        choiceB: "Present it as your own improvement"
+                    },
+                    b: {
+                        text: "The printer follows your instructions but the diagram is still wrong.",
+                        choiceA: "Revisit the workshop",
+                        choiceB: "Publish it anyway"
+                    }
+                }
+            },
+
+            ending:
+`Your work as a scholar shows that book learning alone could not match the complexity of lived craft experience. 
+Every decision you made changed how artisans and printers trusted you. 
+Observation challenged tradition, and collaboration shaped accuracy. 
+Your path reflects the real tensions between textual authority and the hands-on world of Renaissance making.`
+        },
+
+        /* ARTISAN */
+        artisan: {
+            characterName: "Skilled Artisan",
+
+            d1: {
+                text: "A scholar requests permission to document your technique.",
+                choiceA: "Allow limited observation",
+                choiceB: "Restrict access sharply"
+            },
+
+            d2: {
+                fromA: {
+                    text: "The scholar misinterprets a key step.",
+                    choiceA: "Correct them directly",
+                    choiceB: "Let them make the mistake"
+                },
+                fromB: {
+                    text: "A printer publishes an incorrect diagram of your craft.",
+                    choiceA: "Ask for a correction",
+                    choiceB: "Ignore it"
+                }
+            },
+
+            d3: {
+                fromA: {
+                    a: {
+                        text: "The scholar thanks you for the clarification.",
+                        choiceA: "Teach one more detail",
+                        choiceB: "End the session"
+                    },
+                    b: {
+                        text: "The scholar publishes the false version confidently.",
+                        choiceA: "Confront them",
+                        choiceB: "Distance yourself from the project"
+                    }
+                },
+                fromB: {
+                    a: {
+                        text: "The printer agrees to a correction but wants detailed notes.",
+                        choiceA: "Provide the notes",
+                        choiceB: "Decline to help"
+                    },
+                    b: {
+                        text: "Readers begin adopting the incorrect technique.",
+                        choiceA: "Speak publicly",
+                        choiceB: "Let the error spread"
+                    }
+                }
+            },
+
+            ending:
+`Your experience shows how deeply Renaissance scholars depended on artisans for accuracy, even when they failed to admit it. 
+You controlled what others could learn, and your choices shaped how techniques entered books and spread across cities. 
+Allowing access strengthened collaboration, while secrecy protected your livelihood. 
+Your journey demonstrates how artisans quietly shaped the knowledge economy from the workshop floor.`
+        },
+
+        /* PRINTER */
+        printer: {
+            characterName: "Printer-Illustrator",
+
+            d1: {
+                text: "A scholar provides unclear notes for a technical diagram.",
+                choiceA: "Simplify the diagram using your best guess",
+                choiceB: "Request clearer notes"
+            },
+
+            d2: {
+                fromA: {
+                    text: "An artisan says your simplified diagram is incorrect.",
+                    choiceA: "Update it with their feedback",
+                    choiceB: "Trust your own interpretation"
+                },
+                fromB: {
+                    text: "The scholar insists the diagram must follow the classical text, not the workshop reality.",
+                    choiceA: "Follow the classical text",
+                    choiceB: "Follow the artisan’s real practice"
+                }
+            },
+
+            d3: {
+                fromA: {
+                    a: {
+                        text: "The artisan appreciates the correction.",
+                        choiceA: "Ask them to review future diagrams",
+                        choiceB: "Move forward independently"
+                    },
+                    b: {
+                        text: "Printers in another city critique your version.",
+                        choiceA: "Defend your work",
+                        choiceB: "Adopt their revisions"
+                    }
+                },
+                fromB: {
+                    a: {
+                        text: "The scholar praises your loyalty to the text.",
+                        choiceA: "Continue relying on texts",
+                        choiceB: "Begin studying workshops"
+                    },
+                    b: {
+                        text: "The artisan praises your accuracy.",
+                        choiceA: "Collaborate closely",
+                        choiceB: "Maintain independence"
+                    }
+                }
+            },
+
+            ending:
+`As a printer, you became the bridge between theory and practice. 
+Your diagrams shaped what countless readers believed about craft and technique. 
+Every choice you made determined whether knowledge moved closer to reality or stayed tied to tradition. 
+Your journey reveals how printers quietly determined what became “true” in the world of Renaissance technical writing.`
+        }
+    },
+
+    /*******************************
+     *   MILITARY ENGINEERING WORLD
+     *******************************/
+    engineeringWorld: {
+
+        /* ENGINEER */
+        engineer: {
+            characterName: "Military Engineer",
+
+            d1: {
+                text: "A mathematician challenges your fortification geometry.",
+                choiceA: "Test their geometric method",
+                choiceB: "Dismiss it as impractical"
+            },
+
+            d2: {
+                fromA: {
+                    text: "Field tests show mixed results.",
+                    choiceA: "Incorporate part of their method",
+                    choiceB: "Stick with your original design"
+                },
+                fromB: {
+                    text: "A captain demands a faster solution.",
+                    choiceA: "Refuse to rush the work",
+                    choiceB: "Draft a simplified plan"
+                }
+            },
+
+            d3: {
+                fromA: {
+                    a: {
+                        text: "The mathematician appreciates your willingness to blend theory and practice.",
+                        choiceA: "Collaborate formally",
+                        choiceB: "End collaboration"
+                    },
+                    b: {
+                        text: "The mathematician grows frustrated by your loyalty to practice.",
+                        choiceA: "Defend your position",
+                        choiceB: "Reconsider their method"
+                    }
+                },
+                fromB: {
+                    a: {
+                        text: "The captain respects your refusal but pushes harder.",
+                        choiceA: "Hold your ground",
+                        choiceB: "Compromise"
+                    },
+                    b: {
+                        text: "Your simplified plan is approved quickly.",
+                        choiceA: "Refine it quietly",
+                        choiceB: "Move on"
+                    }
+                }
+            },
+
+            ending:
+`Your role shows how Renaissance engineering relied on balancing mathematical ideals with real-world constraints. 
+Captains wanted speed, mathematicians wanted precision, and your choices determined which knowledge shaped the battlefield. 
+Engineering became a negotiation between time, theory, and survival. 
+Your journey reflects the constant tension between practical needs and scholarly ambition in technical work.`
+        },
+
+        /* MATHEMATICIAN */
+        mathematician: {
+            characterName: "Mathematician",
+
+            d1: {
+                text: "The engineer doubts your abstract geometric model.",
+                choiceA: "Defend your theory strongly",
+                choiceB: "Go observe real battlefield conditions"
+            },
+
+            d2: {
+                fromA: {
+                    text: "The captain criticizes your method as too slow.",
+                    choiceA: "Simplify your model",
+                    choiceB: "Stand by mathematical precision"
+                },
+                fromB: {
+                    text: "Your observations reveal flaws in the engineer’s design.",
+                    choiceA: "Share improvements",
+                    choiceB: "Stay silent"
+                }
+            },
+
+            d3: {
+                fromA: {
+                    a: {
+                        text: "The simplified model gains popularity.",
+                        choiceA: "Push it widely",
+                        choiceB: "Limit it to this campaign"
+                    },
+                    b: {
+                        text: "The captain rejects your insistence on precision.",
+                        choiceA: "Appeal to higher authority",
+                        choiceB: "Let it go"
+                    }
+                },
+                fromB: {
+                    a: {
+                        text: "The engineer incorporates your insights.",
+                        choiceA: "Work together closely",
+                        choiceB: "End collaboration"
+                    },
+                    b: {
+                        text: "The engineer assumes you found nothing.",
+                        choiceA: "Tell the captain",
+                        choiceB: "Move on quietly"
+                    }
+                }
+            },
+
+            ending:
+`Your path demonstrates how mathematics shaped Renaissance technical work, but never alone. 
+Observation helped refine theory, and collaboration strengthened practice. 
+Your decisions influenced how geometry entered warfare, revealing the delicate link between abstraction and survival.`
+        },
+
+        /* SOLDIER */
+        soldier: {
+            characterName: "Captain of Artillery",
+
+            d1: {
+                text: "The engineer proposes a slow and complex design.",
+                choiceA: "Support careful planning",
+                choiceB: "Demand speed"
+            },
+
+            d2: {
+                fromA: {
+                    text: "A mathematician proposes improvements.",
+                    choiceA: "Adopt the math-based plan",
+                    choiceB: "Stick with the engineer’s method"
+                },
+                fromB: {
+                    text: "The engineer warns rushing could cause structural failure.",
+                    choiceA: "Proceed anyway",
+                    choiceB: "Reverse your rushed order"
+                }
+            },
+
+            d3: {
+                fromA: {
+                    a: {
+                        text: "The engineer worries the plan is too theoretical.",
+                        choiceA: "Reassure them",
+                        choiceB: "Press ahead anyway"
+                    },
+                    b: {
+                        text: "The mathematician demands more time.",
+                        choiceA: "Grant more time",
+                        choiceB: "Reject the request"
+                    }
+                },
+                fromB: { 
+                    a: {
+                        text: "Your rushed plan causes stress among your crew.",
+                        choiceA: "Slow down",
+                        choiceB: "Push harder"
+                    },
+                    b: {
+                        text: "The engineer appreciates your caution.",
+                        choiceA: "Rebuild trust",
+                        choiceB: "Maintain distance"
+                    }
+                }
+            },
+
+            ending:
+`Your experience reveals how military decisions shaped technical knowledge. 
+Engineers needed time, mathematicians needed precision, but your job required quick judgment. 
+Your choices influenced not only the safety of your men but the future of engineering practices. 
+You show how war accelerated and constrained innovation at the same time.`
+        }
+    },
+
+    /*******************************
+     *     COURTLY PATRONAGE WORLD
+     *******************************/
+    patronWorld: {
+
+        /* PATRON */
+        patron: {
+            characterName: "Court Patron",
+
+            d1: {
+                text: "Two experts seek your funding: an experienced artisan and an ambitious engineer.",
+                choiceA: "Support the artisan’s proven method",
+                choiceB: "Support the engineer’s innovative design"
+            },
+
+            d2: {
+                fromA: {
+                    text: "The engineer criticizes your decision and claims the artisan is outdated.",
+                    choiceA: "Defend the artisan",
+                    choiceB: "Reevaluate the engineer’s proposal"
+                },
+                fromB: {
+                    text: "A scholar questions whether the engineer’s design is realistic.",
+                    choiceA: "Back the engineer anyway",
+                    choiceB: "Listen to the scholar"
+                }
+            },
+
+            d3: {
+                fromA: {
+                    a: {
+                        text: "The artisan expresses gratitude and promises quality work.",
+                        choiceA: "Increase support",
+                        choiceB: "Maintain your current commitment"
+                    },
+                    b: {
+                        text: "The engineer presents a revised proposal.",
+                        choiceA: "Give them a chance",
+                        choiceB: "Stay loyal to the artisan"
+                    }
+                },
+                fromB: {
+                    a: {
+                        text: "The engineer hurries to build results quickly.",
+                        choiceA: "Encourage progress",
+                        choiceB: "Urge caution"
+                    },
+                    b: {
+                        text: "The scholar offers strong evidence against the engineer’s plan.",
+                        choiceA: "Follow the scholar’s advice",
+                        choiceB: "Ignore the warning"
+                    }
+                }
+            },
+
+            ending:
+`Your journey as a patron reveals how power shaped the success or failure of technical projects. 
+Experts needed your support to survive, and your choices influenced which knowledge spread, who gained prestige, and what innovations took root. 
+Favoring artisans preserved proven traditions, while backing engineers accelerated bold but risky changes. 
+Your path shows how Renaissance technical progress was never just about skill or ideas; it depended on those who controlled resources and reputation.`
+        },
+
+        /* ENGINEER SEEKING FAVOR */
+        engineer: {
+            characterName: "Engineer Seeking Favor",
+
+            d1: {
+                text: "You must present your design to the patron. You can be honest or exaggerate.",
+                choiceA: "Present an honest assessment",
+                choiceB: "Exaggerate the performance"
+            },
+
+            d2: {
+                fromA: {
+                    text: "A scholar challenges your claims with precise criticism.",
+                    choiceA: "Debate them openly",
+                    choiceB: "Cooperate and adjust your design"
+                },
+                fromB: {
+                    text: "An artisan says your exaggerated claims are impossible.",
+                    choiceA: "Dismiss the artisan",
+                    choiceB: "Privately admit you exaggerated"
+                }
+            },
+
+            d3: {
+                fromA: {
+                    a: {
+                        text: "Your debate with the scholar draws the patron’s attention.",
+                        choiceA: "Demonstrate your methods",
+                        choiceB: "Challenge the scholar again"
+                    },
+                    b: {
+                        text: "The scholar works with you to refine the design.",
+                        choiceA: "Credit the scholar",
+                        choiceB: "Claim the improvements as your own"
+                    }
+                },
+                fromB: {
+                    a: {
+                        text: "The artisan grows frustrated with your arrogance.",
+                        choiceA: "Attempt to smooth relations",
+                        choiceB: "Ignore them"
+                    },
+                    b: {
+                        text: "The patron asks why your claims changed.",
+                        choiceA: "Admit the truth",
+                        choiceB: "Invent a new excuse"
+                    }
+                }
+            },
+
+            ending:
+`Your experience shows how Renaissance engineers navigated status, competition, and political pressure. 
+Success required technical skill, but also negotiation, persuasion, and strategic honesty. 
+Your choices affected your credibility and the trust of artisans, scholars, and patrons alike. 
+Your path demonstrates how engineering in this era was shaped by ambition as much as ability.`
+        },
+
+        /* COURT SCHOLAR */
+        scholar: {
+            characterName: "Court Scholar",
+
+            d1: {
+                text: "You must review an engineer’s design for the patron.",
+                choiceA: "Give high praise",
+                choiceB: "Critique the design honestly"
+            },
+
+            d2: {
+                fromA: {
+                    text: "The patron requests an even stronger endorsement.",
+                    choiceA: "Strengthen your praise",
+                    choiceB: "Admit the design’s weaknesses"
+                },
+                fromB: {
+                    text: "The patron pressures you for a more favorable review.",
+                    choiceA: "Stand your ground",
+                    choiceB: "Give in to the pressure"
+                }
+            },
+
+            d3: {
+                fromA: {
+                    a: {
+                        text: "The engineer celebrates your praise.",
+                        choiceA: "Ask for a demonstration",
+                        choiceB: "Continue supporting them"
+                    },
+                    b: {
+                        text: "The patron is surprised by your honesty.",
+                        choiceA: "Offer a balanced review",
+                        choiceB: "Recommend deeper testing"
+                    }
+                },
+                fromB: {
+                    a: {
+                        text: "Your refusal angers the patron.",
+                        choiceA: "Defend academic integrity",
+                        choiceB: "Apologize"
+                    },
+                    b: {
+                        text: "The engineer is thrilled but the scholar community doubts you.",
+                        choiceA: "Repair your reputation",
+                        choiceB: "Align with the engineer"
+                    }
+                }
+            },
+
+            ending:
+`Your journey reflects the delicate role scholars played in shaping technical authority. 
+Patrons wanted reassurance, engineers wanted recognition, and artisans demanded accuracy. 
+Your choices determined whether truth or politics guided major decisions. 
+You reveal how Renaissance scholars walked a tightrope between honesty, influence, and survival.`
+        }
+    }
+
+};
+
+</script>
+
+</body>
+</html>
